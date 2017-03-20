@@ -215,7 +215,7 @@ abstract class ContactFactory
         return new Contact($contactDetails);
     }
 
-    public static function create($name, $phoneNumber, $emailAddress)
+    public static function create($name, $phoneNumbers, $emailAddress)
     {
         $doc = new \DOMDocument();
         $doc->formatOutput = true;
@@ -232,10 +232,16 @@ abstract class ContactFactory
         $email->setAttribute('rel', 'http://schemas.google.com/g/2005#work');
         $email->setAttribute('address', $emailAddress);
         $entry->appendChild($email);
+        
+        foreach ($phoneNumbers as $phone) {
+            if (!empty($phone['ext'])) {
+                $phone['number'] = "{$phone['number']} ext. {$phone['ext']}";
+            }
 
-        $contact = $doc->createElement('gd:phoneNumber', $phoneNumber);
-        $contact->setAttribute('rel', 'http://schemas.google.com/g/2005#work');
-        $entry->appendChild($contact);
+            $contact = $doc->createElement('gd:phoneNumber', $phone['number']);
+            $contact->setAttribute('rel', "http://schemas.google.com/g/2005#{$phone['type']}");
+            $entry->appendChild($contact);
+        }        
 
         $xmlToSend = $doc->saveXML();
 
